@@ -6,7 +6,8 @@
 (require racket/match
          racket/string)
 
-(require mordae/match)
+(require mordae/syntax
+         mordae/match)
 
 (require tesira/telnet
          tesira/encoding)
@@ -32,6 +33,7 @@
 (struct tesira
   ((in : Input-Port)
    (out : Output-Port)
+   (lock : Semaphore)
    (notify : (-> Tesira-Response Void))))
 
 (struct ok
@@ -58,61 +60,66 @@
     (error 'tesira-connect "we are not welcome"))
 
   (log-tesira-debug "connected")
-  (tesira in out notify))
+  (tesira in out (make-semaphore 1) notify))
 
 
 (: tesira-send (-> Tesira Symbol Symbol Symbol TExpr * Tesira-Response))
 (define (tesira-send a-tesira alias verb attr . args)
-  (match-let (((tesira in out notifier) a-tesira))
-    (parameterize ((current-output-port out)
-                   (current-input-port in))
-      (let ((alias (symbol->string alias))
-            (verb  (symbol->string verb))
-            (attr  (symbol->string attr)))
-        (unless (id? alias)
-          (raise-arguments-error 'tesira-send "invalid alias" "alias" alias))
+  (match-let (((tesira in out lock notifier) a-tesira))
+    (with-semaphore lock
+      (parameterize ((current-output-port out)
+                     (current-input-port in))
+        (let ((alias (symbol->string alias))
+              (verb  (symbol->string verb))
+              (attr  (symbol->string attr)))
+          (unless (id? alias)
+            (raise-arguments-error 'tesira-send
+                                   "invalid alias" "alias" alias))
 
-        (unless (id? verb)
-          (raise-arguments-error 'tesira-send "invalid verb" "verb" verb))
+          (unless (id? verb)
+            (raise-arguments-error 'tesira-send
+                                   "invalid verb" "verb" verb))
 
-        (unless (id? verb)
-          (raise-arguments-error 'tesira-send "invalid attribute" "attr" attr))
+          (unless (id? verb)
+            (raise-arguments-error 'tesira-send
+                                   "invalid attribute" "attr" attr))
 
-        (define arguments
-          (map texpr->string args))
+          (define arguments
+            (map texpr->string args))
 
-        (let ((args (string-join arguments)))
-          (log-tesira-debug "-> ~a ~a ~a ~a" alias verb attr args)
-          (printf "~a ~a ~a ~a\r\n" alias verb attr args)
-          (flush-output)))
+          (let ((args (string-join arguments)))
+            (log-tesira-debug "-> ~a ~a ~a ~a" alias verb attr args)
+            (printf "~a ~a ~a ~a\r\n" alias verb attr args)
+            (flush-output)))
 
-      (let drain ()
-        (match (receive)
-          ((ok result)
-           (values result))
+        (let drain : Tesira-Response ()
+          (match (receive)
+            ((ok result)
+             (values result))
 
-          ((notify result)
-           (notifier result)
-           (drain))
+            ((notify result)
+             (notifier result)
+             (drain))
 
-          ((err message)
-           (error 'tesira-send "~a" message)))))))
+            ((err message)
+             (error 'tesira-send "~a" message))))))))
 
 
 (: tesira-listen (-> Tesira Tesira-Response))
 (define (tesira-listen a-tesira)
-  (match-let (((tesira in out notifier) a-tesira))
-    (parameterize ((current-output-port out)
-                   (current-input-port in))
-      (match (receive)
-        ((ok _)
-         (error 'tesira-listen "received a reply on a listener socket"))
+  (match-let (((tesira in out lock _) a-tesira))
+    (with-semaphore lock
+      (parameterize ((current-output-port out)
+                     (current-input-port in))
+        (match (receive)
+          ((ok _)
+           (error 'tesira-listen "received a reply on a listener socket"))
 
-        ((notify result)
-         (values result))
+          ((notify result)
+           (values result))
 
-        ((err message)
-         (error 'tesira-listen "~a" message))))))
+          ((err message)
+           (error 'tesira-listen "~a" message)))))))
 
 
 (: id? (-> Any Boolean : #:+ String))
