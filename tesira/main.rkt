@@ -13,6 +13,7 @@
 
 (provide Tesira
          Tesira-Response
+         TExpr
          tesira?
          tesira-connect
          tesira-listen
@@ -23,9 +24,6 @@
 
 (define-type Tesira-Response
   (HashTable Symbol TExpr))
-
-(define-type Tesira-Request
-  (Listof TExpr))
 
 
 (define-logger device)
