@@ -45,8 +45,8 @@
 
 
 (: tesira-connect
-  (->* (String Positive-Integer) ((-> Tesira-Response Void)) Tesira))
-(define (tesira-connect hostname port-no (notify void))
+  (->* (String) (Positive-Integer (-> Tesira-Response Void)) Tesira))
+(define (tesira-connect hostname (port-no 23) (notify void))
   (log-device-info "connecting to ~a, port ~a" hostname port-no)
 
   (define-values (in out)
