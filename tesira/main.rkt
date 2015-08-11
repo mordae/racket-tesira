@@ -26,7 +26,7 @@
   (HashTable Symbol TExpr))
 
 
-(define-logger device)
+(define-logger tesira)
 
 
 (struct tesira
@@ -47,17 +47,17 @@
 (: tesira-connect
   (->* (String) (Positive-Integer (-> Tesira-Response Void)) Tesira))
 (define (tesira-connect hostname (port-no 23) (notify void))
-  (log-device-info "connecting to ~a, port ~a" hostname port-no)
+  (log-tesira-info "connecting to ~a, port ~a" hostname port-no)
 
   (define-values (in out)
     (tcp-connect/telnet hostname port-no))
 
-  (log-device-debug "awaiting welcome")
+  (log-tesira-debug "awaiting welcome")
   (unless (regexp-match #rx"Welcome.*?\n" in)
-    (log-device-error "we are not welcome")
+    (log-tesira-error "we are not welcome")
     (error 'tesira-connect "we are not welcome"))
 
-  (log-device-debug "connected")
+  (log-tesira-debug "connected")
   (tesira in out notify))
 
 
@@ -82,7 +82,7 @@
           (map texpr->string args))
 
         (let ((args (string-join arguments)))
-          (log-device-debug "-> ~a ~a ~a ~a" alias verb attr args)
+          (log-tesira-debug "-> ~a ~a ~a ~a" alias verb attr args)
           (printf "~a ~a ~a ~a\r\n" alias verb attr args)
           (flush-output)))
 
@@ -126,19 +126,19 @@
 (define (receive)
   (match (read-line (current-input-port) 'any)
     ((regexp-parts #rx"^! *(.*)" (_ str))
-     (log-device-debug "<- ! ~a" str)
+     (log-tesira-debug "<- ! ~a" str)
      (notify (cast (string->texpr (format "{~a}" str)) Tesira-Response)))
 
     ((regexp-parts #rx"^\\+OK *(.*)" (_ str))
-     (log-device-debug "<- +OK ~a" str)
+     (log-tesira-debug "<- +OK ~a" str)
      (ok (cast (string->texpr (format "{~a}" str)) Tesira-Response)))
 
     ((regexp-parts #rx"^-ERR *(.*)" (_ str))
-     (log-device-debug "<- -ERR ~a" str)
+     (log-tesira-debug "<- -ERR ~a" str)
      (err str))
 
     ((? string? line)
-     (log-device-error "-> unknown: ~a" line)
+     (log-tesira-error "-> unknown: ~a" line)
      (error 'tesira-send "unknown message received"))
 
     ((? eof-object?)
