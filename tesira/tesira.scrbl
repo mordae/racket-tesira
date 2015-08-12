@@ -21,6 +21,8 @@ Biamp's website. Especially the @hyperlink[ttp-link]{Tesira Text Protocol}
 specification.
 
 
+@section{Interface}
+
 @defidform[Tesira]{
   Type for tesira client object.
 }
@@ -68,6 +70,9 @@ specification.
 @defproc[(tesira-listen (a-tesira Tesira)) Tesira-Response]{
   Listen to a single asynchronous notification.
 }
+
+
+@include-section["util.scrbl"]
 
 
 @; vim:set ft=scribble sw=2 ts=2 et:
