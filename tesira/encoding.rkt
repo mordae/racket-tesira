@@ -16,7 +16,7 @@
 
 (define-type TExpr
   (Rec TExpr
-    (U String Real Boolean
+    (U String Integer Inexact-Real Boolean
        (Listof TExpr)
        (HashTable Symbol TExpr))))
 
