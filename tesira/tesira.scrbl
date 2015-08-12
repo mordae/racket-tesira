@@ -27,6 +27,11 @@ specification.
   Type for tesira client object.
 }
 
+@defidform[Tesira-Number]{
+  Type for tesira-compatible numbers.
+  Currently an alias for @racket[(U Integer Inexact-Real)].
+}
+
 @defidform[Tesira-Response]{
   Type for values obtained from the device.
 }
@@ -38,6 +43,10 @@ specification.
 
 @defproc[(tesira? (v Any)) Boolean]{
   Predicate identifying @racket[Tesira] instances.
+}
+
+@defproc[(tesira-number? (v Any)) Boolean]{
+  Predicate identifying @racket[Tesira-Number] values.
 }
 
 @defproc[(tesira-connect (host String)

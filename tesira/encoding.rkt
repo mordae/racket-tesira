@@ -5,7 +5,8 @@
 
 (require racket/match)
 
-(provide TExpr)
+(provide TExpr
+         Tesira-Number)
 
 (require/typed/provide tesira/private/encoding
   (texpr->string (-> TExpr String))
@@ -14,9 +15,12 @@
   (read-texpr (->* () (Input-Port) TExpr)))
 
 
+(define-type Tesira-Number
+  (U Integer Inexact-Real))
+
 (define-type TExpr
   (Rec TExpr
-    (U String Integer Inexact-Real Boolean
+    (U String Tesira-Number Boolean
        (Listof TExpr)
        (HashTable Symbol TExpr))))
 

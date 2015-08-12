@@ -14,8 +14,10 @@
 
 (provide Tesira
          Tesira-Response
+         Tesira-Number
          TExpr
          tesira?
+         tesira-number?
          tesira-connect
          tesira-listen
          tesira-send)
@@ -25,6 +27,9 @@
 
 (define-type Tesira-Response
   (HashTable Symbol TExpr))
+
+
+(define-predicate tesira-number? Tesira-Number)
 
 
 (define-logger tesira)
