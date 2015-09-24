@@ -2,7 +2,7 @@
 
 (define collection 'multi)
 (define deps '("base" "scribble-lib" "typed-racket-lib" "parser-tools-lib"
-               "mordae"))
+               "typed-racket-more" "mordae"))
 (define build-deps '("racket-doc" "typed-racket-doc" "typed-racket-lib"))
 
 ; vim:set ts=2 sw=2 et:
