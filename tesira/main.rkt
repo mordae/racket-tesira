@@ -93,7 +93,7 @@
             (map texpr->string args))
 
           (let ((args (string-join arguments)))
-            (log-tesira-debug "-> ~a ~a ~a ~a" alias verb attr args)
+            (log-tesira-info "-> ~a ~a ~a ~a" alias verb attr args)
             (printf "~a ~a ~a ~a\r\n" alias verb attr args)
             (flush-output)))
 
@@ -138,15 +138,15 @@
 (define (receive)
   (match (read-line (current-input-port) 'any)
     ((regexp-parts #rx"^! *(.*)" (_ str))
-     (log-tesira-debug "<- ! ~a" str)
+     (log-tesira-info "<- ! ~a" str)
      (notify (cast (string->texpr (format "{~a}" str)) Tesira-Response)))
 
     ((regexp-parts #rx"^\\+OK *(.*)" (_ str))
-     (log-tesira-debug "<- +OK ~a" str)
+     (log-tesira-info "<- +OK ~a" str)
      (ok (cast (string->texpr (format "{~a}" str)) Tesira-Response)))
 
     ((regexp-parts #rx"^-ERR *(.*)" (_ str))
-     (log-tesira-debug "<- -ERR ~a" str)
+     (log-tesira-info "<- -ERR ~a" str)
      (err str))
 
     ((? string? line)
