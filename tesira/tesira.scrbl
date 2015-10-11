@@ -69,15 +69,6 @@ specification.
 
   The client object is locked for the duration of the call and any concurrent
   call will be blocked until the first one receives it's reply.
-
-  Concurrent use of this function together with @racket[tesira-listen] is not
-  recommended as @racket[tesira-listen] will lock the client object until it
-  receives a notification message. Consider using another instance to receive
-  changes through.
-}
-
-@defproc[(tesira-listen (a-tesira Tesira)) Tesira-Response]{
-  Listen to a single asynchronous notification.
 }
 
 

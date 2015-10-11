@@ -19,7 +19,6 @@
          tesira?
          tesira-number?
          tesira-connect
-         tesira-listen
          tesira-send)
 
 
@@ -98,7 +97,7 @@
             (flush-output)))
 
         (let drain : Tesira-Response ()
-          (match (receive)
+          (match (receive 10000)
             ((ok result)
              (values result))
 
@@ -110,23 +109,6 @@
              (error 'tesira-send "~a" message))))))))
 
 
-(: tesira-listen (-> Tesira Tesira-Response))
-(define (tesira-listen a-tesira)
-  (match-let (((tesira in out lock _) a-tesira))
-    (with-semaphore lock
-      (parameterize ((current-output-port out)
-                     (current-input-port in))
-        (match (receive)
-          ((ok _)
-           (error 'tesira-listen "received a reply on a listener socket"))
-
-          ((notify result)
-           (values result))
-
-          ((err message)
-           (error 'tesira-listen "~a" message)))))))
-
-
 (: id? (-> Any Boolean : #:+ String))
 (define (id? v)
   (and (string? v)
@@ -134,9 +116,9 @@
        #t))
 
 
-(: receive (-> (U ok notify err)))
-(define (receive)
-  (match (read-line (current-input-port) 'any)
+(: receive (-> Nonnegative-Real (U ok notify err)))
+(define (receive timeout)
+  (match (sync/timeout timeout (read-line-evt (current-input-port) 'any))
     ((regexp-parts #rx"^! *(.*)" (_ str))
      (log-tesira-info "<- ! ~a" str)
      (notify (cast (string->texpr (format "{~a}" str)) Tesira-Response)))
@@ -154,7 +136,10 @@
      (error 'tesira-send "unknown message received"))
 
     ((? eof-object?)
-     (error 'tesira-send "connection terminated"))))
+     (error 'tesira-send "connection terminated"))
+
+    (else
+     (error 'tesira-send "connection timeout"))))
 
 
 ; vim:set ts=2 sw=2 et:
