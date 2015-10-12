@@ -3,7 +3,8 @@
 ; Tesira Client
 ;
 
-(require racket/match
+(require racket/port
+         racket/match
          racket/string)
 
 (require mordae/syntax
